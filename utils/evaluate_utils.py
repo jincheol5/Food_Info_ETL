@@ -22,22 +22,17 @@ class EvaluateUtils:
             for field,data in result.items():
                 value=data.get("value")
                 unit=data.get("unit")
-
                 ### Null value 처리
                 if value is None:
                     value = 0.0
-
                 ### Null unit 처리
                 if unit is None:
                     unit = "g"
-
                 processed_result[field] = {
                     "value":value,
                     "unit":unit
                 }
-
             processed_results.append(processed_result)
-
         return processed_results
 
     @staticmethod

@@ -1,7 +1,8 @@
 import argparse
+import time
 from tqdm import tqdm
 from langchain_ollama import ChatOllama
-from langchain_core.messages import SystemMessage,HumanMessage,AIMessage
+from langchain_core.messages import SystemMessage,HumanMessage
 from schema import NutritionSchema,Prompt
 from utils import DataUtils,EvaluateUtils
 
@@ -16,7 +17,6 @@ def main(**kwargs):
     img_dict=test_dataset["img"]
     label_dict=test_dataset["label"]
     img_list=sorted(img_dict.items(),key=lambda x:x[0])
-    label_list=sorted(label_dict.items(),key=lambda x:x[0])
 
     ### load and set llm with structured output
     llm=ChatOllama(
@@ -27,7 +27,10 @@ def main(**kwargs):
     structured_llm=llm.with_structured_output(schema=NutritionSchema)
 
     ### evaluate llm
+    correct_schema=0
+    execute_times=[]
     llm_results=[]
+    labels=[]
     for food_id,img_base64 in tqdm(img_list,desc=f"Evaluate llm..."):
         # set message for llm
         messages=[
@@ -47,16 +50,36 @@ def main(**kwargs):
                 ]
             )
         ]
+        start_time=time.perf_counter()
         try:
-            response:AIMessage=structured_llm.invoke(messages)
+            response:NutritionSchema=structured_llm.invoke(messages)
+            llm_result=response.model_dump()
+            llm_results.append(llm_result)
+            labels.append(label_dict[food_id])
+            correct_schema+=1
         except Exception as e: 
-            # 파싱 실패 시
-            """
-            """
-        result=response.model_dump() # dict
-        print(result)
-        break
-        llm_results.append(result)
+            pass
+        end_time=time.perf_counter()
+        execute_times.append(float(end_time-start_time))
+
+    ### postprocess llm_results
+    llm_results=EvaluateUtils.postprocess_llm_result(llm_results=llm_results)
+
+    ### Mean Time, Accuracy
+    mean_execute_time=sum(execute_times)/len(execute_times)
+    schema_acc=correct_schema/len(llm_results)
+    value_acc=EvaluateUtils.evaluate_nutrition_value(
+        llm_results=llm_results,
+        labels=labels
+    )
+    unit_acc=EvaluateUtils.evaluate_nutrition_unit(
+        llm_results=llm_results,
+        labels=labels
+    )
+    print(f"Mean execute time: {mean_execute_time}")
+    print(f"Schema ACC: {schema_acc}")
+    print(f"Value ACC: {value_acc}")
+    print(f"Unit ACC: {unit_acc}")
 
 if __name__=="__main__":
     """
@@ -67,15 +90,18 @@ if __name__=="__main__":
         type=str,
         choices=[
             # Qwen
-            "qwen2.5vl:7b"
-            "qwen3-vl:8b"
+            "qwen3-vl:8b",
+            "qwen3.5:0.8b",
+            "qwen3.5:2b",
             "qwen3.5:9b",
             # Gemma
             "gemma3:4b",
+            "gemma3:12b",
             "gemma4:e2b"
             "gemma4:e4b",
             # OpenBMB
             "minicpm-v:8b",
+            "minicpm-v4.6:1b",
             # Meta
             "llama3.2-vision:11b"
         ],

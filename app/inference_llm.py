@@ -19,15 +19,18 @@ if __name__=="__main__":
         type=str,
         choices=[
             # Qwen
-            "qwen2.5vl:7b"
-            "qwen3-vl:8b"
+            "qwen3-vl:8b",
+            "qwen3.5:0.8b",
+            "qwen3.5:2b",
             "qwen3.5:9b",
             # Gemma
             "gemma3:4b",
+            "gemma3:12b",
             "gemma4:e2b"
             "gemma4:e4b",
             # OpenBMB
             "minicpm-v:8b",
+            "minicpm-v4.6:1b",
             # Meta
             "llama3.2-vision:11b"
         ],
