@@ -1,7 +1,3 @@
-import json
-from pydantic import ValidationError
-from schema import NutritionSchema
-
 class EvaluateUtils:
     @staticmethod
     def postprocess_llm_result(llm_results:list[dict])->list[dict]:
@@ -14,7 +10,7 @@ class EvaluateUtils:
         Input:
             llm_results: LLM structured output 결과의 dict 리스트
         Return:
-            processed_results: 후처리된 JSON 문자열 리스트
+            processed_results: 후처리된 dict 리스트
         """
         processed_results=[]
         for result in llm_results:
@@ -34,18 +30,6 @@ class EvaluateUtils:
                 }
             processed_results.append(processed_result)
         return processed_results
-
-    @staticmethod
-    def evaluate_json_schema(llm_results:list[str])->float:
-        correct=0
-        for result in llm_results:
-            try:
-                NutritionSchema.model_validate_json(result)
-                correct+=1
-            except ValidationError:
-                pass
-        accuracy=correct/len(llm_results)
-        return accuracy
 
     @staticmethod
     def evaluate_nutrition_value(
@@ -74,7 +58,7 @@ class EvaluateUtils:
         for llm_result,label in zip(llm_results,labels):
             for field in fields:
                 total+=1
-                pred_value=getattr(llm_result,field).value
+                pred_value=llm_result[field]["value"]
                 label_value=label[field]["value"]
                 if pred_value==label_value:
                     correct+=1
@@ -109,7 +93,7 @@ class EvaluateUtils:
         for llm_result,label in zip(llm_results,labels):
             for field in fields:
                 total+=1
-                pred_unit=getattr(llm_result,field).unit
+                pred_unit=llm_result[field]["unit"]
                 label_unit=label[field]["unit"]
                 if pred_unit==label_unit:
                     correct+=1

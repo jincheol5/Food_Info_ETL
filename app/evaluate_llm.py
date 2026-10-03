@@ -66,8 +66,8 @@ def main(**kwargs):
     llm_results=EvaluateUtils.postprocess_llm_result(llm_results=llm_results)
 
     ### Mean Time, Accuracy
-    mean_execute_time=sum(execute_times)/len(execute_times)
-    schema_acc=correct_schema/len(llm_results)
+    mean_execute_time=sum(execute_times)/len(execute_times) if execute_times else 0.0
+    schema_acc=correct_schema/len(img_list) if img_list else 0.0
     value_acc=EvaluateUtils.evaluate_nutrition_value(
         llm_results=llm_results,
         labels=labels
@@ -97,7 +97,7 @@ if __name__=="__main__":
             # Gemma
             "gemma3:4b",
             "gemma3:12b",
-            "gemma4:e2b"
+            "gemma4:e2b",
             "gemma4:e4b",
             # OpenBMB
             "minicpm-v:8b",
