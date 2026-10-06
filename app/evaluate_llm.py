@@ -76,6 +76,7 @@ def main(**kwargs):
         llm_results=llm_results,
         labels=labels
     )
+    print(f"Evaluate {model_name}")
     print(f"Mean execute time: {mean_execute_time}")
     print(f"Schema ACC: {schema_acc}")
     print(f"Value ACC: {value_acc}")
@@ -99,6 +100,7 @@ if __name__=="__main__":
             "gemma3:12b",
             "gemma4:e2b",
             "gemma4:e4b",
+            "gemma4:12b",
             # OpenBMB
             "minicpm-v:8b",
             "minicpm-v4.6:1b",
