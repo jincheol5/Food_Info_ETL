@@ -1,8 +1,8 @@
-from pydantic import BaseModel,ConfigDict,Field,field_validator
+from pydantic import BaseModel,ConfigDict,Field
 from enum import Enum
 from typing import Literal
 
-class FoodImageClassifierSchema(BaseModel):
+class FoodImgClassSchema(BaseModel):
     label:Literal[0,1]=Field(
         description=f"1 if at least one nutrition panel entry has a reliably readable nutrient or energy name, numeric amount, and unit; 0 otherwise."
     )

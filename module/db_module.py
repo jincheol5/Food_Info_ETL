@@ -68,14 +68,14 @@ class MongoDBInterface:
             print(f"MongoDB error: {e}")
             return []
 
-    def update_nutrition_info(self,nutrition_info_list:list):
-        for nutrition_info in nutrition_info_list:
+    def update_nutrition_info(self,nutrition_info:dict):
+        success_count=0
+        for food_id,result in nutrition_info.items():
             """
             nutrition_info
-                (food_id,result)
+                key: food_id
+                value: result
             """
-            food_id=nutrition_info[0]
-            result=nutrition_info[1]
             try:
                 self.nutrition.update_one(
                     {"_id":food_id},
@@ -87,6 +87,8 @@ class MongoDBInterface:
                         }
                     }
                 )
+                success_count+=1
             except PyMongoError as e:
                 print(f"MongoDB error: {e}")
                 continue
+        return success_count

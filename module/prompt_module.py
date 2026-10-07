@@ -1,4 +1,5 @@
 import textwrap
+from langchain_core.prompts import ChatPromptTemplate
 
 class Prompt:
     FOOD_IMG_CLASSIFIER_SYSTEM_PROMPT=textwrap.dedent(
@@ -24,6 +25,7 @@ class Prompt:
         8. Return only data conforming to the supplied structured-output schema. Set `label` to the integer `1` for extractable nutrition information or `0` otherwise. Do not include explanations, comments, markdown, or additional fields.
         """
     ).strip()
+
     FOOD_IMG_CLASSIFIER_HUMAN_PROMPT=textwrap.dedent(
         """
         Determine whether nutrition information can be reliably extracted from the provided image.
@@ -78,6 +80,7 @@ class Prompt:
         11. Return only data conforming to the supplied structured-output schema. Do not include explanations, comments, markdown, or any additional text.
         """
     ).strip()
+
     NUTRITION_EXTRACTION_HUMAN_PROMPT=textwrap.dedent(
         """
         Extract the nutrition information from the provided food package image.
@@ -86,4 +89,60 @@ class Prompt:
 
         Return the extracted values together with their units.
         """
-    ).strip()
+    ).strip()  
+
+    @staticmethod
+    def get_img_classification_prompt():
+        """
+        img_base64는 chain.invoke()에서 전달
+        """
+        prompt=ChatPromptTemplate.from_messages([
+            (
+                "system",
+                Prompt.FOOD_IMG_CLASSIFIER_SYSTEM_PROMPT
+            ),
+            (
+                "human",
+                [
+                    {
+                        "type": "text",
+                        "text": Prompt.FOOD_IMG_CLASSIFIER_HUMAN_PROMPT
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "data:image/png;base64,{img_base64}"
+                        }
+                    }
+                ]
+            )
+        ])
+        return prompt
+
+    @staticmethod
+    def get_nutrition_extraction_prompt():
+        """
+        img_base64는 chain.invoke()에서 전달
+        """
+        prompt=ChatPromptTemplate.from_messages([
+            (
+                "system",
+                Prompt.NUTRITION_EXTRACTION_SYSTEM_PROMPT
+            ),
+            (
+                "human",
+                [
+                    {
+                        "type": "text",
+                        "text": Prompt.NUTRITION_EXTRACTION_HUMAN_PROMPT
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "data:image/png;base64,{img_base64}"
+                        }
+                    }
+                ]
+            )
+        ])
+        return prompt

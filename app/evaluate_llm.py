@@ -1,9 +1,7 @@
 import argparse
 import time
 from tqdm import tqdm
-from langchain_ollama import ChatOllama
-from langchain_core.messages import SystemMessage,HumanMessage
-from schema import NutritionSchema,Prompt
+from module import Chain
 from utils import DataUtils,EvaluateUtils
 
 def main(**kwargs):
@@ -18,13 +16,8 @@ def main(**kwargs):
     label_dict=test_dataset["label"]
     img_list=sorted(img_dict.items(),key=lambda x:x[0])
 
-    ### load and set llm with structured output
-    llm=ChatOllama(
-        model=model_name,
-        base_url=f"http://127.0.0.1:{ollama_port}",
-        temperature=0
-    )
-    structured_llm=llm.with_structured_output(schema=NutritionSchema)
+    ### set evaluation chain
+    chain=Chain.get_evaluate_LLM_chain(model_name=model_name,ollama_port=ollama_port)
 
     ### evaluate llm
     correct_schema=0
@@ -32,27 +25,9 @@ def main(**kwargs):
     llm_results=[]
     labels=[]
     for food_id,img_base64 in tqdm(img_list,desc=f"Evaluate llm..."):
-        # set message for llm
-        messages=[
-            SystemMessage(content=Prompt.NUTRITION_EXTRACTION_SYSTEM_PROMPT),
-            HumanMessage(
-                content=[
-                    {
-                        "type":"text",
-                        "text":Prompt.NUTRITION_EXTRACTION_HUMAN_PROMPT
-                    },
-                    {
-                        "type":"image_url",
-                        "image_url": (
-                            f"data:image/png;base64,{img_base64}"
-                        )
-                    }
-                ]
-            )
-        ]
         start_time=time.perf_counter()
         try:
-            response:NutritionSchema=structured_llm.invoke(messages)
+            response=chain.invoke({"img_base64":img_base64})
             llm_result=response.model_dump()
             llm_results.append(llm_result)
             labels.append(label_dict[food_id])
